@@ -23,8 +23,8 @@ Currently host:
 5. Set a version for the Docker image in `VERSION:`
 
 # Explanation about the workflows with a schedule.
-These workflows will be rebuilt every X time (`0 */12 * * *` for most of them).
+These workflows will be rebuilt every X time (`0 0 1 * *` for most of them).
 
-They will fetch the latest version for the version specified in the workflow file then try to build a new docker image if the version has never been built. You can change that by setting to a fixed version.
+They will fetch the latest version for the version specified in the Dockerfile for `FROM:`.
 
-This allows to update the environment as quickly as possible because if a new geOrchestra version comes out then the new Docker images will already be ready.
+This allows to keep up to date Docker images.
