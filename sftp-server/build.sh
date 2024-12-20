@@ -7,23 +7,23 @@ apt update
 apt install -y --no-install-recommends --no-install-suggests openssh-server
 
 rm -f /etc/ssh/ssh_host_*_key*
-mkdir /var/run/sshd /etc/ssh/ssh_host_keys 
-sed -i -e 's@#HostKey /etc/ssh/ssh_host@HostKey /etc/ssh/ssh_host_keys/ssh_host@g' /etc/ssh/sshd_config 
-echo "AllowUsers sftp" >> /etc/ssh/sshd_config 
-echo "PasswordAuthentication no" >> /etc/ssh/sshd_config 
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.client 
-sed -i -e 's@^Subsystem sftp .*@Subsystem sftp internal-sftp@' /etc/ssh/sshd_config.client 
-echo "Match User sftp" >> /etc/ssh/sshd_config.client 
-echo "    AllowTcpForwarding no" >> /etc/ssh/sshd_config.client 
-echo "    X11Forwarding no" >> /etc/ssh/sshd_config.client 
+mkdir /var/run/sshd /etc/ssh/ssh_host_keys
+sed -i -e 's@#HostKey /etc/ssh/ssh_host@HostKey /etc/ssh/ssh_host_keys/ssh_host@g' /etc/ssh/sshd_config
+echo "AllowUsers sftp" >> /etc/ssh/sshd_config
+echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.client
+sed -i -e 's@^Subsystem sftp .*@Subsystem sftp internal-sftp@' /etc/ssh/sshd_config.client
+echo "Match User sftp" >> /etc/ssh/sshd_config.client
+echo "    AllowTcpForwarding no" >> /etc/ssh/sshd_config.client
+echo "    X11Forwarding no" >> /etc/ssh/sshd_config.client
 echo "    ForceCommand internal-sftp" >> /etc/ssh/sshd_config.client
 
 # Add user tools
-    
+
 apt install -y --no-install-recommends --no-install-suggests \
     groff rsync vim-nox emacs-nox screen gdal-bin pktools wget curl file \
     python3-gdal nano git htop sudo tree less bash-completion zsh figlet colordiff unzip \
-    python3 dnsutils ldap-utils postgresql-common
+    python3 dnsutils ldap-utils postgresql-common uuid-runtime
 
 # configure postgresql apt repository (PGDG)
 # see https://wiki.postgresql.org/wiki/Apt
