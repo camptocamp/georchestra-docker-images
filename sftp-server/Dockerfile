@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:12.10
 
 COPY build.sh /tmp/build.sh
 

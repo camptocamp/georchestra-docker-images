@@ -1,6 +1,4 @@
-ARG PHP_VERSION=8.3
-
-FROM php:${PHP_VERSION}-apache
+FROM php:8.3-apache
 
 # set fixed UID and GID - see github.com/hexops/dockerfile
 ARG UID=999
