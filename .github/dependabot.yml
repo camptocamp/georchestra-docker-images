@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: maven
+  - package-ecosystem: "docker"
     directory: "/apache-nas"
     schedule:
       interval: weekly
