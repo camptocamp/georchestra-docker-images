@@ -3,12 +3,12 @@ updates:
   - package-ecosystem: "docker"
     directory: "/apache-nas"
     schedule:
-      interval: weekly
+      interval: monthly
   - package-ecosystem: "docker"
     directory: "/sftp-server"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: "weekly"
+      interval: "monthly"
