@@ -42,4 +42,4 @@ jobs:
           file: ./sftp-server/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/camptocamp/georchestra-docker-images/sftp-server:latest, ghcr.io/camptocamp/georchestra-docker-images/sftp-server:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/sftp-server:${{ env.timestamp }}-{{ github.sha }}
+          tags: ghcr.io/camptocamp/georchestra-docker-images/sftp-server:latest, ghcr.io/camptocamp/georchestra-docker-images/sftp-server:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/sftp-server:${{ env.timestamp }}-${{ github.sha }}

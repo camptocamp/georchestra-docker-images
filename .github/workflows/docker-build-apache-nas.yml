@@ -46,4 +46,4 @@ jobs:
           file: ./apache-nas/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/camptocamp/georchestra-docker-images/apache-nas:latest, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}-{{ github.sha }}
+          tags: ghcr.io/camptocamp/georchestra-docker-images/apache-nas:latest, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}-${{ github.sha }}
