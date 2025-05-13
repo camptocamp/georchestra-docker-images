@@ -35,6 +35,9 @@ jobs:
         with:
           version: latest
 
+      - name: Set up build timestamp
+        run: echo "timestamp=$(date +%Y%m%d)" >> $GITHUB_ENV
+
       - name: Build and push docker image
         id: docker_build
         uses: docker/build-push-action@v6
@@ -43,5 +46,4 @@ jobs:
           file: ./apache-nas/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/camptocamp/georchestra-docker-images/apache-nas:latest, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.VERSION }}-${{ env.PHP_VERSION }}, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.VERSION }}-${{ env.PHP_VERSION }}-build-${{ github.sha }}
-          build-args: PHP_VERSION=${{ env.PHP_VERSION }}
+          tags: ghcr.io/camptocamp/georchestra-docker-images/apache-nas:latest, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/apache-nas:${{ env.timestamp }}-{{ github.sha }}
