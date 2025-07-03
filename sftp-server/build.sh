@@ -23,7 +23,7 @@ echo "    ForceCommand internal-sftp" >> /etc/ssh/sshd_config.client
 apt install -y --no-install-recommends --no-install-suggests \
     groff rsync vim-nox emacs-nox screen gdal-bin pktools wget curl file \
     python3-gdal nano git htop sudo tree less bash-completion zsh figlet colordiff unzip zip \
-    python3 dnsutils ldap-utils postgresql-common uuid-runtime
+    python3 dnsutils ldap-utils postgresql-common uuid-runtime pgcopydb
 
 # configure postgresql apt repository (PGDG)
 # see https://wiki.postgresql.org/wiki/Apt
