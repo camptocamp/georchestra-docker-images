@@ -1,0 +1,45 @@
+name: Docker build geoserver-sync image
+
+on:
+  workflow_dispatch:
+  # rebuild with latest debian stable version each month
+  schedule:
+    - cron: "0 0 1 * *"
+  push:
+    branches: [ "master" ]
+    paths:
+      - '.github/workflows/docker-build-geoserver-sync.yml'
+      - 'geoserver-sync/**'
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+
+      - name: Set up build timestamp
+        run: echo "timestamp=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+      - name: Build and push docker image
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./geoserver-sync
+          file: ./geoserver-sync/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/camptocamp/georchestra-docker-images/geoserver-sync:latest, ghcr.io/camptocamp/georchestra-docker-images/geoserver-sync:${{ env.timestamp }}, ghcr.io/camptocamp/georchestra-docker-images/geoserver-sync:${{ env.timestamp }}-${{ github.sha }}
