@@ -37,8 +37,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v6
         with:
-          context: ./apache-nas
-          file: ./apache-nas/Dockerfile
+          context: ./toolbox
+          file: ./toolbox/Dockerfile
           platforms: linux/amd64
           push: true
           tags: |
