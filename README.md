@@ -15,7 +15,7 @@ Currently host:
 
 # How to add a new Docker image
 
-## If it's a script or a custom tool that exist only for Rennes métropole (or only in this repository)
+## If it's a script or a custom tool (or only in this repository)
 1. Copy an existing workflow file based on sftp-server.
 2. Change the workflow name: `name:`.
 3. Adapt the paths in `push.paths`.
