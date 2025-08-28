@@ -12,9 +12,6 @@ This Docker image provides a lightweight Alpine Linux-based toolbox container wi
 - **curl** - Command line tool for transferring data
 - **wget** - Network downloader
 - **bind-tools** - DNS utilities (dig, nslookup)
-- **netcat-openbsd** - Network utility for debugging and investigation
-- **nmap** - Network discovery and security auditing
-- **iperf3** - Network bandwidth measurement tool
 
 ## Usage
 

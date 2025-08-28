@@ -13,10 +13,7 @@ apk add --no-cache \
     bash \
     curl \
     wget \
-    bind-tools \
-    netcat-openbsd \
-    nmap \
-    iperf3
+    bind-tools
 
 # Clean up
 rm -rf /var/cache/apk/*
