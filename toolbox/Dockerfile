@@ -6,4 +6,4 @@ COPY build.sh /tmp/build.sh
 RUN /tmp/build.sh
 
 # Default command
-CMD ["/bin/sh"]
+CMD ["tail", "-f", "/dev/null"]
