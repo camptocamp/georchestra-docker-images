@@ -16,7 +16,7 @@ docker-php-ext-install pgsql pdo_pgsql zip
 
 # configure apache2
 chown -R www-data /run/apache2 /run/lock/apache2 /var/cache/apache2/mod_cache_disk /var/log/apache2
-printf "upload_max_filesize=50M\npost_max_size=50M\n" > /usr/local/etc/php/conf.d/upload-size-customizations.ini
+printf "upload_max_filesize=512M\npost_max_size=512M\n" > /usr/local/etc/php/conf.d/upload-size-customizations.ini
 a2enmod rewrite headers
 
 # disable builtin php functions that might be exploited / reveal sensitive infos
