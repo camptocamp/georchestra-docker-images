@@ -13,6 +13,10 @@ apk add --no-cache \
     bash \
     curl \
     wget \
+    ioping \
+    coreutils \
+    openssl \
+    gawk \
     bind-tools
 
 # Clean up
