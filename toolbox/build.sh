@@ -17,6 +17,7 @@ apk add --no-cache \
     coreutils \
     openssl \
     gawk \
+    hdparm \
     bind-tools
 
 # Clean up
