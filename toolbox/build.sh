@@ -15,6 +15,7 @@ apk add --no-cache \
     wget \
     ioping \
     coreutils \
+    openjdk11-jre-headless \
     openssl \
     gawk \
     hdparm \
@@ -22,3 +23,5 @@ apk add --no-cache \
 
 # Clean up
 rm -rf /var/cache/apk/*
+
+wget https://github.com/jiaqi/jmxterm/releases/download/v1.0.4/jmxterm-1.0.4-uber.jar -O /opt/jmxterm.jar
