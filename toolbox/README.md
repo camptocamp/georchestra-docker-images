@@ -18,7 +18,11 @@ This Docker image provides a lightweight Alpine Linux-based toolbox container wi
 ### Basic Usage
 
 ```bash
-docker run -it --rm georchestra/toolbox
+docker run -it --rm ghcr.io/camptocamp/georchestra-docker-images/toolbox
+```
+
+```
+kubectl run toolbox --image=ghcr.io/camptocamp/georchestra-docker-images/toolbox --restart=Never
 ```
 
 ### Running with network access
