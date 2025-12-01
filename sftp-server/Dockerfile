@@ -1,4 +1,4 @@
-FROM debian:13.1
+FROM debian:13.2
 
 COPY build.sh /tmp/build.sh
 
