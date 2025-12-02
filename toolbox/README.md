@@ -15,6 +15,12 @@ This Docker image provides a lightweight Alpine Linux-based toolbox container wi
 
 ## Usage
 
+### Inject the container as a debug container in a running pod
+
+```bash
+kubectl debug -it georchestra-header-b768c765b-qjk56 --image ghcr.io/camptocamp/georchestra-docker-images/toolbox:latest -- bash
+```
+
 ### Basic Usage
 
 ```bash
@@ -28,17 +34,17 @@ kubectl run toolbox --image=ghcr.io/camptocamp/georchestra-docker-images/toolbox
 ### Running with network access
 
 ```bash
-docker run -it --rm --net=host georchestra/toolbox
+docker run -it --rm --net=host ghcr.io/camptocamp/georchestra-docker-images/toolbox
 ```
 
 ### Running specific tools
 
 ```bash
 # Use tcpdump to capture packets
-docker run -it --rm --net=host --cap-add=NET_RAW georchestra/toolbox tcpdump -i any
+docker run -it --rm --net=host --cap-add=NET_RAW ghcr.io/camptocamp/georchestra-docker-images/toolbox tcpdump -i any
 
 # Use mitmproxy
-docker run -it --rm -p 8080:8080 georchestra/toolbox mitmproxy
+docker run -it --rm -p 8080:8080 ghcr.io/camptocamp/georchestra-docker-images/toolbox mitmproxy
 ```
 
 ## Notes
