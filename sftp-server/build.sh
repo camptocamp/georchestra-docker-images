@@ -7,7 +7,7 @@ apt update
 apt install -y --no-install-recommends --no-install-suggests openssh-server
 
 rm -f /etc/ssh/ssh_host_*_key*
-mkdir /var/run/sshd /etc/ssh/ssh_host_keys
+mkdir -p /var/run/sshd /etc/ssh/ssh_host_keys
 sed -i -e 's@#HostKey /etc/ssh/ssh_host@HostKey /etc/ssh/ssh_host_keys/ssh_host@g' /etc/ssh/sshd_config
 echo "AllowUsers sftp" >> /etc/ssh/sshd_config
 echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
