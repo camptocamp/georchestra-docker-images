@@ -2,9 +2,6 @@ name: Docker build sftp-server image
 
 on:
   workflow_dispatch:
-  # rebuild with latest debian stable version each month
-  schedule:
-    - cron: "0 0 1 * *"
   push:
     branches: [ "master" ]
     paths:

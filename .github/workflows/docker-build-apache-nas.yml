@@ -2,9 +2,6 @@ name: Docker build apache nas image
 
 on:
   workflow_dispatch:
-  # rebuild with latest php version each month
-  schedule:
-    - cron: "0 0 1 * *"
   push:
     branches: [ "master" ]
     paths:

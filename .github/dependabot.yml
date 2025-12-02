@@ -8,6 +8,14 @@ updates:
     directory: "/sftp-server"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/geoserver-datadir-sync"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "/geoserver-lb-geoserver-sync"
+    schedule:
+      interval: "monthly"
   - package-ecosystem: github-actions
     directory: /
     schedule:
