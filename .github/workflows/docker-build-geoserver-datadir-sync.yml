@@ -1,0 +1,50 @@
+name: Docker build geoserver-datadir-sync image
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 1 * *"
+  push:
+    branches: [ "master" ]
+    paths:
+      - '.github/workflows/docker-build-geoserver-datadir-sync.yml'
+      - 'geoserver-datadir-sync/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Docker image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker metadata
+        uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}/geoserver-datadir-sync
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=sha
+            type=semver,pattern={{version}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./geoserver-datadir-sync
+          file: ./geoserver-datadir-sync/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
