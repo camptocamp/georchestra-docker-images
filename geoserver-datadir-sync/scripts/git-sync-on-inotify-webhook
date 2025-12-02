@@ -8,7 +8,7 @@
 # This script watches a git repository for changes and automatically syncs them.
 # It also sends webhook notifications after each sync to enable external monitoring.
 
-GIT_SYNC_DIRECTORY="${GIT_SYNC_DIRECTORY:-$(pwd)}"
+GIT_SYNC_DIRECTORY="/mnt/geoserver_datadir"
 GIT_SYNC_COMMAND="${GIT_SYNC_COMMAND:-git-sync}"
 GIT_SYNC_INTERVAL="${GIT_SYNC_INTERVAL:-500}"
 WEBHOOK_URL="${WEBHOOK_URL:-}"

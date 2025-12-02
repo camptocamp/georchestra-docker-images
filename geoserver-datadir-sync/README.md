@@ -4,6 +4,150 @@ Modern automatic GeoServer datadir synchronization using [git-sync](https://gith
 
 This Docker image provides automated, bi-directional Git synchronization for GeoServer configuration directories with intelligent conflict resolution, webhook monitoring, and robust error handling.
 
+## Helm Chart Deployment (Kubernetes)
+
+### Installation
+
+Install using the Camptocamp Helm repository via OCI registry:
+
+```bash
+helm install geoserver-datadir-sync \
+  oci://ghcr.io/camptocamp/charts-gs/geoserver-datadir-sync \
+  --version X.X.X \
+  -f values.yaml
+```
+
+### Configuration
+
+Create a `values.yaml` file with your settings:
+
+```yaml
+# Required: Git repository configuration
+extra_environment:
+  - name: GIT_REMOTE_REPOSITORY
+    value: "git@github.com:yourorg/geoserver-config.git"
+  - name: GIT_BRANCH
+    value: "main"
+  
+  # Required: Webhook for monitoring
+  - name: WEBHOOK_URL
+    value: "https://uptime.example.com/ping/your-monitor-id"
+  
+  # Optional: Sync interval (default: 60 seconds)
+  - name: SYNC_INTERVAL
+    value: "120"
+  
+  # Optional: Git committer information
+  - name: GIT_COMMITTER_NAME
+    value: "GeoServer DataDir Sync"
+  - name: GIT_COMMITTER_EMAIL
+    value: "geoserver@example.com"
+
+# Required: SSH key for Git authentication
+secrets:
+  datadirSSHKey: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    your-private-key-here
+    -----END OPENSSH PRIVATE KEY-----
+
+# Required: Volume to sync
+volumes:
+  geoserverDatadir:
+    persistentVolumeClaim:
+      claimName: georchestra-geoserver-datadir
+
+# Optional: Resource limits
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+```
+
+### ⚠️ Critical: Branch Sync Configuration
+
+**You must configure git-sync for your repository branch before the sync will start working.**
+
+This is a safety feature to prevent accidental synchronization. After the first deployment:
+
+1. **Exec into the pod**:
+   ```bash
+   kubectl exec -it deployment/geoserver-datadir-sync -- bash
+   ```
+
+2. **Navigate to the data directory**:
+   ```bash
+   cd /mnt/geoserver_datadir
+   ```
+
+3. **Enable sync for your branch** (replace `main` with your branch name):
+   ```bash
+   git config branch.main.sync true
+   ```
+
+4. **Verify the configuration**:
+   ```bash
+   git config --get branch.main.sync
+   # Should output: true
+   ```
+
+5. **Restart the pod** to start syncing:
+   ```bash
+   kubectl rollout restart deployment/geoserver-datadir-sync
+   ```
+
+The sync will only work after `branch.<your-branch>.sync` is set to `true`. This prevents accidental synchronization of the wrong branches.
+
+### Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GIT_REMOTE_REPOSITORY` | Yes | - | Git repository URL (SSH format recommended) |
+| `GIT_BRANCH` | Yes | - | Branch to sync |
+| `WEBHOOK_URL` | Yes | - | Webhook to call on sync events |
+| `SYNC_INTERVAL` | No | `60` | Sync interval in seconds |
+| `GIT_COMMITTER_NAME` | No | `geoserver-datadir-sync` | Git committer name |
+| `GIT_COMMITTER_EMAIL` | No | `geoserver-datadir-sync@container` | Git committer email |
+
+### Webhook Integration Examples
+
+**UptimeRobot (GET request)**:
+```yaml
+extra_environment:
+  - name: WEBHOOK_URL
+    value: "https://uptimerobot.com/api/push/your-id"
+```
+
+**Custom webhook (POST with JSON)**:
+```yaml
+extra_environment:
+  - name: WEBHOOK_URL
+    value: "https://monitoring.example.com/api/events"
+```
+
+The webhook receives:
+- **GET**: Simple ping on success, no call on failure
+- **POST**: JSON payload with `{"status": "success"}` or `{"status": "failed", "message": "error details"}`
+
+### Monitoring
+
+Check the logs to verify sync is working:
+
+```bash
+kubectl logs -f deployment/geoserver-datadir-sync
+```
+
+Expected output:
+```
+git-sync version 2
+Settings: ...
+Syncing repository...
+[SUCCESS] Changes detected and synced
+Webhook notification sent successfully
+```
+
 ## Features
 
 ✨ **Based on proven git-sync technology**
@@ -26,7 +170,7 @@ This Docker image provides automated, bi-directional Git synchronization for Geo
 - Repository must be explicitly configured for sync
 - Automatic sync configuration for new repos only
 
-## Quick Start
+## Quick Start (Docker)
 
 ```yaml
 version: '3.8'
@@ -43,9 +187,6 @@ services:
       REMOTE_URL: git@github.com:your-org/geoserver-datadir.git
       REMOTE_BRANCH: master
       
-      # File to watch for changes
-      WATCH_FILE: global.xml
-      
       # Webhook (required)
       WEBHOOK_URL: https://your-monitoring-service.com/webhook
       
@@ -55,7 +196,7 @@ services:
         your-private-key-here
         -----END RSA PRIVATE KEY-----
     volumes:
-      - geoserver_datadir:/var/local/data:rw
+      - geoserver_datadir:/mnt/geoserver_datadir:rw
 
 volumes:
   geoserver_datadir:
@@ -67,8 +208,7 @@ volumes:
 
 | Variable | Description |
 |----------|-------------|
-| `WATCH_FILE` | File to watch for changes (relative to datadir root). Set this to enable continuous sync. |
-| `WEBHOOK_URL` | Webhook URL for monitoring notifications (required when `WATCH_FILE` is set). |
+| `WEBHOOK_URL` | Webhook URL for monitoring notifications. |
 | `GIT_USERNAME` | Git username for commits. |
 | `GIT_EMAIL` | Git email for commits. |
 
@@ -94,13 +234,9 @@ Choose one of:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `GIT_SYNC_INTERVAL` | Sync interval in milliseconds (inotify timeout). | `500` |
-| `GIT_SYNC_DIRECTORY` | Directory to synchronize. | `/var/local/data` |
 | `FORCE_CLONE` | Force cleanup of directory before cloning (`yes`/`no`). | `no` |
-| `NO_RESET` | Skip reset to remote state for existing repos (`true`/`false`). | `false` |
 | `GIT_COMMIT_MESSAGE` | Custom commit message (can be a shell command). | Auto-generated |
 | `WEBHOOK_METHOD` | HTTP method for webhook (`GET`/`POST`). | `GET` |
-| `USERID` | User ID for the sync user. | `999` |
-| `GROUPID` | Group ID for the sync user. | `999` |
 
 ## Webhook Configuration
 
@@ -152,7 +288,6 @@ The new version is **mostly backward compatible** with environment variables fro
          WEBHOOK_URL: https://your-monitoring.com/webhook
          
          # Keep existing variables
-         WATCH_FILE: global.xml
          GIT_USERNAME: your-username
          # ... other variables
    ```
@@ -184,7 +319,7 @@ The new version is **mostly backward compatible** with environment variables fro
    - **If .git exists**: Updates remote configuration, optionally fetches/resets
    - **New repos only**: Automatically configures git-sync settings
 
-3. **Continuous Sync** (if `WATCH_FILE` is set):
+3. **Continuous Sync**:
    - Validates `WEBHOOK_URL` is configured
    - Starts file watcher with inotify
    - Performs periodic sync on timeout
@@ -221,7 +356,6 @@ environment:
 environment:
   GIT_USERNAME: local-user
   GIT_EMAIL: local@example.com
-  WATCH_FILE: global.xml
   WEBHOOK_URL: http://localhost:8080/health
   # No REMOTE_NAME or REMOTE_URL
 ```
@@ -234,14 +368,16 @@ environment:
   GIT_EMAIL: init@example.com
   REMOTE_NAME: origin
   REMOTE_URL: git@github.com:org/repo.git
-  # No WATCH_FILE - exits after clone/init
+  # No webhook - for initialization only
 ```
 
 ## Troubleshooting
 
 ### Container exits immediately
 
-Check if `WATCH_FILE` is set. Without it, the container performs initialization only and exits.
+Check logs for error messages. Common causes:
+- Missing required environment variables
+- SSH key permissions issues
 
 ### "ERROR: WEBHOOK_URL is not configured"
 

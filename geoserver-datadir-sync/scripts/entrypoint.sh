@@ -45,11 +45,11 @@ if [ -n "$REMOTE_NAME" ] && [ -n "$REMOTE_URL" ]; then
 fi
 
 # Change to the data directory
-cd "$GIT_SYNC_DIRECTORY"
+cd /mnt/geoserver_datadir
 
 # Initialize or update the git repository
 if [ ! -d .git ]; then
-    echo "No git repository found in $GIT_SYNC_DIRECTORY"
+    echo "No git repository found in /mnt/geoserver_datadir"
     
     if [ -n "$REMOTE_NAME" ] && [ -n "$REMOTE_URL" ]; then
         # Check if directory is empty (excluding . and ..)
@@ -114,12 +114,6 @@ if [ -n "$WEBHOOK_URL" ]; then
     echo "Webhook notifications: enabled"
 fi
 echo "======================================="
-
-# If WATCH_FILE is not set, exit after initialization
-if [ -z "$WATCH_FILE" ]; then
-    echo "WATCH_FILE not set, exiting after initialization"
-    exit 1
-fi
 
 # Webhook is required for continuous sync monitoring
 if [ -z "$WEBHOOK_URL" ]; then
