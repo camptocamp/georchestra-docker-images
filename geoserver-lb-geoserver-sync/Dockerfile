@@ -1,4 +1,4 @@
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 
 # set fixed UID and GID - see github.com/hexops/dockerfile
 ARG UID=10000
