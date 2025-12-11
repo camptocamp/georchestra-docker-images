@@ -72,6 +72,8 @@ if [ ! -d .git ]; then
         # Configure the repository for git-sync
         git config --bool branch."$REMOTE_BRANCH".sync true
         git config --bool branch."$REMOTE_BRANCH".syncNewFiles true
+        git config branch."$REMOTE_BRANCH".remote "$REMOTE_NAME"
+        git config branch."$REMOTE_BRANCH".merge "refs/heads/$REMOTE_BRANCH"
         git config branch."$REMOTE_BRANCH".pushRemote "$REMOTE_NAME"
     else
         echo "No remote configured, initializing local repository"
@@ -88,6 +90,12 @@ else
         echo "Updating remote $REMOTE_NAME to $REMOTE_URL"
         git remote remove "$REMOTE_NAME" 2>/dev/null || true
         git remote add "$REMOTE_NAME" "$REMOTE_URL"
+        
+        # Configure upstream tracking for the branch
+        echo "Configuring upstream tracking for branch $REMOTE_BRANCH"
+        git config branch."$REMOTE_BRANCH".remote "$REMOTE_NAME"
+        git config branch."$REMOTE_BRANCH".merge "refs/heads/$REMOTE_BRANCH"
+        git config branch."$REMOTE_BRANCH".pushRemote "$REMOTE_NAME"
         
         # Fetch latest changes
         echo "Fetching from remote"
