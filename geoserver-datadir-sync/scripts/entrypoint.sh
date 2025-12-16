@@ -123,12 +123,11 @@ if [ -n "$WEBHOOK_URL" ]; then
 fi
 echo "======================================="
 
-# Webhook is required for continuous sync monitoring
+# Webhook configuration (optional)
 if [ -z "$WEBHOOK_URL" ]; then
-    echo "ERROR: WEBHOOK_URL is not configured"
-    echo "Webhook notifications are required for monitoring continuous sync."
-    echo "Please set the WEBHOOK_URL environment variable."
-    exit 1
+    echo "WARNING: WEBHOOK_URL is not configured (optional)"
+    echo "For production monitoring, it is recommended to configure a webhook to be notified of sync status"
+    echo "Set the WEBHOOK_URL environment variable to enable notifications."
 fi
 
 echo "Starting continuous sync (watching for changes)"

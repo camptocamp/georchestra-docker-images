@@ -22,35 +22,44 @@ helm install geoserver-datadir-sync \
 Create a `values.yaml` file with your settings:
 
 ```yaml
-# Required: Git repository configuration
-extra_environment:
-  - name: GIT_REMOTE_REPOSITORY
-    value: "git@github.com:yourorg/geoserver-config.git"
-  - name: GIT_BRANCH
-    value: "main"
-  
-  # Required: Webhook for monitoring
-  - name: WEBHOOK_URL
-    value: "https://uptime.example.com/ping/your-monitor-id"
-  
-  # Optional: Sync interval (default: 60 seconds)
-  - name: SYNC_INTERVAL
-    value: "120"
-  
-  # Optional: Git committer information
-  - name: GIT_COMMITTER_NAME
-    value: "GeoServer DataDir Sync"
-  - name: GIT_COMMITTER_EMAIL
-    value: "geoserver@example.com"
+# Git configuration
+# GIT_USERNAME - Git username for commits
+# GIT_EMAIL - Git email for commits
+# REMOTE_NAME - Name of the git remote (e.g., origin)
+# REMOTE_URL - Git repository URL
+# REMOTE_BRANCH - Branch to synchronize
+git:
+  remote:
+    name: "origin"
+    url: "git@github.com:yourorg/geoserver-datadir.git"
+    branch: "main"
 
-# Required: SSH key for Git authentication
+# Webhook configuration
+# WEBHOOK_URL - Webhook URL for monitoring notifications
+# WEBHOOK_METHOD - HTTP method for webhook: GET or POST
+webhook:
+  url: "https://hc-ping.com/your-monitor-id"
+  method: "GET"
+
+# SSH authentication - provide your private RSA key for git authentication
+# This will be mounted as a secret and passed via GIT_RSA_DEPLOY_KEY environment variable
 secrets:
+  # GIT_RSA_DEPLOY_KEY - Private RSA key content (multiline)
   datadirSSHKey: |
     -----BEGIN OPENSSH PRIVATE KEY-----
     your-private-key-here
     -----END OPENSSH PRIVATE KEY-----
 
-# Required: Volume to sync
+# Optional configuration
+config:
+  # GIT_SYNC_INTERVAL - Sync interval in milliseconds (inotify timeout)
+  syncInterval: 500
+  # FORCE_CLONE - Force cleanup of directory before cloning (yes/no)
+  forceClone: "no"
+  # GIT_COMMIT_MESSAGE - Custom commit message (can be a shell command)
+  # Example: 'printf "updateSequence "; grep updateSequence global.xml | sed -e "s#.*ce>\(.*\)</up.*#\1#"'
+  commitMessage: ""
+
 volumes:
   geoserverDatadir:
     persistentVolumeClaim:
@@ -64,6 +73,32 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+
+# Additional environment variables (advanced use)
+extra_environment: []
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
 ```
 
 ### ⚠️ Critical: Branch Sync Configuration
@@ -100,31 +135,44 @@ This is a safety feature to prevent accidental synchronization. After the first 
 
 The sync will only work after `branch.<your-branch>.sync` is set to `true`. This prevents accidental synchronization of the wrong branches.
 
-### Environment Variables Reference
+### Configuration Parameters Reference
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `GIT_REMOTE_REPOSITORY` | Yes | - | Git repository URL (SSH format recommended) |
-| `GIT_BRANCH` | Yes | - | Branch to sync |
-| `WEBHOOK_URL` | Yes | - | Webhook to call on sync events |
-| `SYNC_INTERVAL` | No | `60` | Sync interval in seconds |
-| `GIT_COMMITTER_NAME` | No | `geoserver-datadir-sync` | Git committer name |
-| `GIT_COMMITTER_EMAIL` | No | `geoserver-datadir-sync@container` | Git committer email |
+#### Git Configuration
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `git.username` | Yes | - | Git username for commits |
+| `git.email` | Yes | - | Git email for commits |
+| `git.remote.name` | Yes | - | Name of the git remote (e.g., origin) |
+| `git.remote.url` | Yes | - | Git repository URL (SSH format recommended) |
+| `git.remote.branch` | Yes | - | Branch to synchronize |
+
+#### Webhook Configuration
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `webhook.url` | No | - | Webhook URL for monitoring notifications |
+| `webhook.method` | No | `GET` | HTTP method for webhook (GET or POST) |
+
+#### Optional Configuration
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `config.syncInterval` | No | `500` | Sync interval in milliseconds (inotify timeout) |
+| `config.forceClone` | No | `no` | Force cleanup of directory before cloning (yes/no) |
+| `config.commitMessage` | No | - | Custom commit message (can be a shell command) |
 
 ### Webhook Integration Examples
 
 **UptimeRobot (GET request)**:
 ```yaml
-extra_environment:
-  - name: WEBHOOK_URL
-    value: "https://uptimerobot.com/api/push/your-id"
+webhook:
+  url: "https://uptimerobot.com/api/push/your-id"
+  method: "GET"
 ```
 
 **Custom webhook (POST with JSON)**:
 ```yaml
-extra_environment:
-  - name: WEBHOOK_URL
-    value: "https://monitoring.example.com/api/events"
+webhook:
+  url: "https://monitoring.example.com/api/events"
+  method: "POST"
 ```
 
 The webhook receives:
@@ -155,7 +203,7 @@ Webhook notification sent successfully
 - Intelligent rebase handling for diverged histories
 - Graceful degradation on conflicts requiring manual intervention
 
-🔔 **Built-in webhook monitoring** (required)
+🔔 **Built-in webhook monitoring** (optional)
 - GET requests for simple monitoring (UptimeRobot, etc.)
 - POST requests with JSON payloads for advanced integrations
 - Notifications on sync success and failure
@@ -187,7 +235,7 @@ services:
       REMOTE_URL: git@github.com:your-org/geoserver-datadir.git
       REMOTE_BRANCH: master
       
-      # Webhook (required)
+      # Optional: Webhook for monitoring
       WEBHOOK_URL: https://your-monitoring-service.com/webhook
       
       # SSH key for git authentication
@@ -208,7 +256,6 @@ volumes:
 
 | Variable | Description |
 |----------|-------------|
-| `WEBHOOK_URL` | Webhook URL for monitoring notifications. |
 | `GIT_USERNAME` | Git username for commits. |
 | `GIT_EMAIL` | Git email for commits. |
 
@@ -235,8 +282,9 @@ Choose one of:
 |----------|-------------|---------|
 | `GIT_SYNC_INTERVAL` | Sync interval in milliseconds (inotify timeout). | `500` |
 | `FORCE_CLONE` | Force cleanup of directory before cloning (`yes`/`no`). | `no` |
-| `GIT_COMMIT_MESSAGE` | Custom commit message (can be a shell command). | Auto-generated |
+| `WEBHOOK_URL` | Webhook URL for monitoring notifications. | - |
 | `WEBHOOK_METHOD` | HTTP method for webhook (`GET`/`POST`). | `GET` |
+| `GIT_COMMIT_MESSAGE` | Custom commit message (can be a shell command). | Auto-generated |
 
 ## Webhook Configuration
 
@@ -272,7 +320,7 @@ The new version is **mostly backward compatible** with environment variables fro
 
 ### Key Differences
 
-1. **Webhook is now required**: Set `WEBHOOK_URL` when using `WATCH_FILE`
+1. **Webhook is now optional**: Set `WEBHOOK_URL` when you want monitoring notifications
 2. **Automatic configuration**: Only applies to new repos, not existing ones
 3. **Better conflict handling**: Sync stops on unresolvable conflicts instead of forcing
 
@@ -284,7 +332,7 @@ The new version is **mostly backward compatible** with environment variables fro
      sync:
        image: ghcr.io/camptocamp/georchestra-docker-images/geoserver-datadir-sync:latest
        environment:
-         # Add webhook URL (required)
+         # Add webhook URL (optional, for monitoring)
          WEBHOOK_URL: https://your-monitoring.com/webhook
          
          # Keep existing variables
@@ -320,10 +368,9 @@ The new version is **mostly backward compatible** with environment variables fro
    - **New repos only**: Automatically configures git-sync settings
 
 3. **Continuous Sync**:
-   - Validates `WEBHOOK_URL` is configured
    - Starts file watcher with inotify
    - Performs periodic sync on timeout
-   - Sends webhook notifications
+   - Sends webhook notifications (if configured)
 
 ### Sync Behavior
 
@@ -368,7 +415,7 @@ environment:
   GIT_EMAIL: init@example.com
   REMOTE_NAME: origin
   REMOTE_URL: git@github.com:org/repo.git
-  # No webhook - for initialization only
+  # No webhook - for initialization only (optional)
 ```
 
 ## Troubleshooting
@@ -379,9 +426,9 @@ Check logs for error messages. Common causes:
 - Missing required environment variables
 - SSH key permissions issues
 
-### "ERROR: WEBHOOK_URL is not configured"
+### "WARNING: WEBHOOK_URL is not configured (optional)"
 
-Webhook is required for continuous sync. Set `WEBHOOK_URL` environment variable.
+Webhook is optional for monitoring sync events. Set `WEBHOOK_URL` environment variable if you want notifications.
 
 ### "Manual intervention required"
 
