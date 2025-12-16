@@ -4,197 +4,43 @@ Modern automatic GeoServer datadir synchronization using [git-sync](https://gith
 
 This Docker image provides automated, bi-directional Git synchronization for GeoServer configuration directories with intelligent conflict resolution, webhook monitoring, and robust error handling.
 
+## Docker Compose deployment
+
+1. Add this into a docker-compose.yml file:
+
+```yaml
+version: '3.8'
+services:
+  datadir-sync:
+    image: ghcr.io/camptocamp/georchestra-docker-images/geoserver-datadir-sync:latest
+    environment:
+      # Remote repository
+      REMOTE_NAME: origin
+      REMOTE_URL: git@github.com:your-org/geoserver-datadir.git
+      REMOTE_BRANCH: master
+      
+      # Optional: Webhook for monitoring - for production
+      #WEBHOOK_URL: https://your-monitoring-service.com/webhook
+      
+      # SSH key for git authentication
+      GIT_RSA_DEPLOY_KEY: |
+        -----BEGIN RSA PRIVATE KEY-----
+        your-private-key-here
+        -----END RSA PRIVATE KEY-----
+    volumes:
+      - geoserver_datadir:/mnt/geoserver_datadir:rw
+
+# You will need to adapt this in order to use the existing geoserver-datadir volume
+volumes:
+  geoserver_datadir:
+```
+
+2. For a production environment, configure a webhook by following the instructions in [WEBHOOK-UPTIMEROBOT.md](./WEBHOOK-UPTIMEROBOT.md).
+
 ## Helm Chart Deployment (Kubernetes)
 
-### Installation
+See https://github.com/camptocamp/charts-gs/tree/main/geoserver-datadir-sync
 
-Install using the Camptocamp Helm repository via OCI registry:
-
-```bash
-helm install geoserver-datadir-sync \
-  oci://ghcr.io/camptocamp/charts-gs/geoserver-datadir-sync \
-  --version X.X.X \
-  -f values.yaml
-```
-
-### Configuration
-
-Create a `values.yaml` file with your settings:
-
-```yaml
-# Git configuration
-# GIT_USERNAME - Git username for commits
-# GIT_EMAIL - Git email for commits
-# REMOTE_NAME - Name of the git remote (e.g., origin)
-# REMOTE_URL - Git repository URL
-# REMOTE_BRANCH - Branch to synchronize
-git:
-  remote:
-    name: "origin"
-    url: "git@github.com:yourorg/geoserver-datadir.git"
-    branch: "main"
-
-# Webhook configuration
-# WEBHOOK_URL - Webhook URL for monitoring notifications
-# WEBHOOK_METHOD - HTTP method for webhook: GET or POST
-webhook:
-  url: "https://hc-ping.com/your-monitor-id"
-  method: "GET"
-
-# SSH authentication - provide your private RSA key for git authentication
-# This will be mounted as a secret and passed via GIT_RSA_DEPLOY_KEY environment variable
-secrets:
-  # GIT_RSA_DEPLOY_KEY - Private RSA key content (multiline)
-  datadirSSHKey: |
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    your-private-key-here
-    -----END OPENSSH PRIVATE KEY-----
-
-# Optional configuration
-config:
-  # GIT_SYNC_INTERVAL - Sync interval in milliseconds (inotify timeout)
-  syncInterval: 500
-  # FORCE_CLONE - Force cleanup of directory before cloning (yes/no)
-  forceClone: "no"
-  # GIT_COMMIT_MESSAGE - Custom commit message (can be a shell command)
-  # Example: 'printf "updateSequence "; grep updateSequence global.xml | sed -e "s#.*ce>\(.*\)</up.*#\1#"'
-  commitMessage: ""
-
-volumes:
-  geoserverDatadir:
-    persistentVolumeClaim:
-      claimName: georchestra-geoserver-datadir
-
-# Optional: Resource limits
-resources:
-  limits:
-    cpu: 200m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
-
-# Additional environment variables (advanced use)
-extra_environment: []
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-```
-
-### ⚠️ Critical: Branch Sync Configuration
-
-**You must configure git-sync for your repository branch before the sync will start working.**
-
-This is a safety feature to prevent accidental synchronization. After the first deployment:
-
-1. **Exec into the pod**:
-   ```bash
-   kubectl exec -it deployment/geoserver-datadir-sync -- bash
-   ```
-
-2. **Navigate to the data directory**:
-   ```bash
-   cd /mnt/geoserver_datadir
-   ```
-
-3. **Enable sync for your branch** (replace `main` with your branch name):
-   ```bash
-   git config branch.main.sync true
-   ```
-
-4. **Verify the configuration**:
-   ```bash
-   git config --get branch.main.sync
-   # Should output: true
-   ```
-
-5. **Restart the pod** to start syncing:
-   ```bash
-   kubectl rollout restart deployment/geoserver-datadir-sync
-   ```
-
-The sync will only work after `branch.<your-branch>.sync` is set to `true`. This prevents accidental synchronization of the wrong branches.
-
-### Configuration Parameters Reference
-
-#### Git Configuration
-| Parameter | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `git.username` | Yes | - | Git username for commits |
-| `git.email` | Yes | - | Git email for commits |
-| `git.remote.name` | Yes | - | Name of the git remote (e.g., origin) |
-| `git.remote.url` | Yes | - | Git repository URL (SSH format recommended) |
-| `git.remote.branch` | Yes | - | Branch to synchronize |
-
-#### Webhook Configuration
-| Parameter | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `webhook.url` | No | - | Webhook URL for monitoring notifications |
-| `webhook.method` | No | `GET` | HTTP method for webhook (GET or POST) |
-
-#### Optional Configuration
-| Parameter | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `config.syncInterval` | No | `500` | Sync interval in milliseconds (inotify timeout) |
-| `config.forceClone` | No | `no` | Force cleanup of directory before cloning (yes/no) |
-| `config.commitMessage` | No | - | Custom commit message (can be a shell command) |
-
-### Webhook Integration Examples
-
-**UptimeRobot (GET request)**:
-```yaml
-webhook:
-  url: "https://uptimerobot.com/api/push/your-id"
-  method: "GET"
-```
-
-**Custom webhook (POST with JSON)**:
-```yaml
-webhook:
-  url: "https://monitoring.example.com/api/events"
-  method: "POST"
-```
-
-The webhook receives:
-- **GET**: Simple ping on success, no call on failure
-- **POST**: JSON payload with `{"status": "success"}` or `{"status": "failed", "message": "error details"}`
-
-### Monitoring
-
-Check the logs to verify sync is working:
-
-```bash
-kubectl logs -f deployment/geoserver-datadir-sync
-```
-
-Expected output:
-```
-git-sync version 2
-Settings: ...
-Syncing repository...
-[SUCCESS] Changes detected and synced
-Webhook notification sent successfully
-```
 
 ## Features
 
@@ -217,38 +63,6 @@ Webhook notification sent successfully
 - Configure which branch to sync (prevents accidents)
 - Repository must be explicitly configured for sync
 - Automatic sync configuration for new repos only
-
-## Quick Start (Docker)
-
-```yaml
-version: '3.8'
-services:
-  datadir-sync:
-    image: ghcr.io/camptocamp/georchestra-docker-images/geoserver-datadir-sync:latest
-    environment:
-      # Git configuration
-      GIT_USERNAME: "geoserver-sync"
-      GIT_EMAIL: "geoserver@example.com"
-      
-      # Remote repository
-      REMOTE_NAME: origin
-      REMOTE_URL: git@github.com:your-org/geoserver-datadir.git
-      REMOTE_BRANCH: master
-      
-      # Optional: Webhook for monitoring
-      WEBHOOK_URL: https://your-monitoring-service.com/webhook
-      
-      # SSH key for git authentication
-      GIT_RSA_DEPLOY_KEY: |
-        -----BEGIN RSA PRIVATE KEY-----
-        your-private-key-here
-        -----END RSA PRIVATE KEY-----
-    volumes:
-      - geoserver_datadir:/mnt/geoserver_datadir:rw
-
-volumes:
-  geoserver_datadir:
-```
 
 ## Environment Variables
 
@@ -282,7 +96,7 @@ Choose one of:
 |----------|-------------|---------|
 | `GIT_SYNC_INTERVAL` | Sync interval in milliseconds (inotify timeout). | `500` |
 | `FORCE_CLONE` | Force cleanup of directory before cloning (`yes`/`no`). | `no` |
-| `WEBHOOK_URL` | Webhook URL for monitoring notifications. | - |
+| `WEBHOOK_URL` | Webhook URL for monitoring notifications. See [WEBHOOK-UPTIMEROBOT.md](WEBHOOK-UPTIMEROBOT.md) for UptimeRobot setup guide. | - |
 | `WEBHOOK_METHOD` | HTTP method for webhook (`GET`/`POST`). | `GET` |
 | `GIT_COMMIT_MESSAGE` | Custom commit message (can be a shell command). | Auto-generated |
 
@@ -320,7 +134,7 @@ The new version is **mostly backward compatible** with environment variables fro
 
 ### Key Differences
 
-1. **Webhook is now optional**: Set `WEBHOOK_URL` when you want monitoring notifications
+1. **Webhook is optional**: Set `WEBHOOK_URL` when you want monitoring notifications
 2. **Automatic configuration**: Only applies to new repos, not existing ones
 3. **Better conflict handling**: Sync stops on unresolvable conflicts instead of forcing
 
