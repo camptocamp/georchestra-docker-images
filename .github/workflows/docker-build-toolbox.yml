@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/docker-build-toolbox.yml'
       - 'toolbox/**'
+      - '!toolbox/**/*.md'
 
 jobs:
   build:

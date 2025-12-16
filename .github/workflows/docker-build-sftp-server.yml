@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/docker-build-sftp-server.yml'
       - 'sftp-server/**'
+      - '!sftp-server/**/*.md'
 
 jobs:
   build:

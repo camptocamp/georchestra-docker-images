@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/docker-build-apache-nas.yml'
       - 'apache-nas/**'
+      - '!apache-nas/**/*.md'
 
 env:
   # docker image version

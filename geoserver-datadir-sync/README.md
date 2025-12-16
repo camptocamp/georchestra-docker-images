@@ -14,6 +14,10 @@ services:
   datadir-sync:
     image: ghcr.io/camptocamp/georchestra-docker-images/geoserver-datadir-sync:latest
     environment:
+      # Git configuration
+      GIT_USERNAME: "georchestra"
+      GIT_EMAIL: "georchestra@camptocamp.com"
+
       # Remote repository
       REMOTE_NAME: origin
       REMOTE_URL: git@github.com:your-org/geoserver-datadir.git
