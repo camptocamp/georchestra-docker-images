@@ -1,4 +1,4 @@
-FROM debian:13.2-slim
+FROM debian:13.3-slim
 
 LABEL maintainer="georchestra@camptocamp.com"
 LABEL description="Modern GeoServer datadir synchronization with git-sync"
