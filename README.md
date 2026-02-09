@@ -2,12 +2,13 @@
 
 Custom Docker images for the geOrchetra team.
 
-Currently host: https://github.com/orgs/camptocamp/packages?repo_name=georchestra-docker-images
+Check the following link for a list of docker images being generated from this repository:
+https://github.com/orgs/camptocamp/packages?repo_name=georchestra-docker-images
 
 # Update a Docker image
 
 1. Do your changes in the folder of the Docker image.
-4. Push your changes.
+2. Push your changes.
 
 # How to add a new Docker image
 
@@ -16,3 +17,5 @@ Currently host: https://github.com/orgs/camptocamp/packages?repo_name=georchestr
 2. Change the workflow name: `name:`.
 3. Adapt the paths in `push.paths`.
 4. For the step `docker_build`, adapt every parameter to the project name.
+
+

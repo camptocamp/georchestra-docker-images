@@ -1,0 +1,47 @@
+name: Docker build jmx-collectd image
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 1 * *"
+  push:
+    branches: [ "master" ]
+    paths:
+      - '.github/workflows/docker-build-jmx-collectd.yml'
+      - 'jmx-collectd/**'
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v5
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+
+      - name: Set up build timestamp
+        run: echo "timestamp=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+      - name: Build and push docker image
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./jmx-collectd
+          file: ./jmx-collectd/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/camptocamp/georchestra-docker-images/jmx-collectd:latest
+            ghcr.io/camptocamp/georchestra-docker-images/jmx-collectd:${{ env.timestamp }}
+            ghcr.io/camptocamp/georchestra-docker-images/jmx-collectd:${{ env.timestamp }}-${{ github.sha }}
