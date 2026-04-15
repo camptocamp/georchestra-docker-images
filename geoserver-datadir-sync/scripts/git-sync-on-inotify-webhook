@@ -13,6 +13,7 @@ GIT_SYNC_COMMAND="${GIT_SYNC_COMMAND:-git-sync}"
 GIT_SYNC_INTERVAL="${GIT_SYNC_INTERVAL:-500}"
 WEBHOOK_URL="${WEBHOOK_URL:-}"
 WEBHOOK_METHOD="${WEBHOOK_METHOD:-GET}"
+WEBHOOK_SKIP_CERT_VALIDATION="${WEBHOOK_SKIP_CERT_VALIDATION:-false}"
 
 # Function to send webhook notification
 send_webhook() {
@@ -26,23 +27,28 @@ send_webhook() {
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local hostname=$(hostname)
     
+    local curl_args=(
+        --max-time 10
+        --silent
+        --show-error
+        --fail
+    )
+    
+    if [ "$WEBHOOK_SKIP_CERT_VALIDATION" = "true" ]; then
+        curl_args+=( --insecure )
+    fi
+    
     if [ "$WEBHOOK_METHOD" = "POST" ]; then
         # Send JSON payload for POST requests
         curl -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "{\"status\":\"$status\",\"message\":\"$message\",\"timestamp\":\"$timestamp\",\"hostname\":\"$hostname\"}" \
-            --max-time 10 \
-            --silent \
-            --show-error \
-            --fail \
+            "${curl_args[@]}" \
             2>&1 | sed 's/^/webhook: /' || echo "webhook: Failed to send notification"
     else
         # Simple GET request (e.g., for UptimeRobot)
         curl -X GET "$WEBHOOK_URL" \
-            --max-time 10 \
-            --silent \
-            --show-error \
-            --fail \
+            "${curl_args[@]}" \
             2>&1 | sed 's/^/webhook: /' || echo "webhook: Failed to send notification"
     fi
 }

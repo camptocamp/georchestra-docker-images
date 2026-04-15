@@ -102,6 +102,7 @@ Choose one of:
 | `FORCE_CLONE` | Force cleanup of directory before cloning (`yes`/`no`). | `no` |
 | `WEBHOOK_URL` | Webhook URL for monitoring notifications. See [WEBHOOK-UPTIMEROBOT.md](WEBHOOK-UPTIMEROBOT.md) for UptimeRobot setup guide. | - |
 | `WEBHOOK_METHOD` | HTTP method for webhook (`GET`/`POST`). | `GET` |
+| `WEBHOOK_SKIP_CERT_VALIDATION` | Skip HTTP certificate validation for webhook (`true`/`false`). | `false` |
 | `GIT_COMMIT_MESSAGE` | Custom commit message (can be a shell command). | Auto-generated |
 
 ## Webhook Configuration
