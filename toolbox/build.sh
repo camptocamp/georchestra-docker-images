@@ -19,7 +19,8 @@ apk add --no-cache \
     openssl \
     gawk \
     hdparm \
-    bind-tools
+    bind-tools \
+    py3-ldap3
 
 # Clean up
 rm -rf /var/cache/apk/*
