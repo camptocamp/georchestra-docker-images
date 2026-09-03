@@ -29,7 +29,7 @@ apt install -y --no-install-recommends --no-install-suggests \
 # see https://wiki.postgresql.org/wiki/Apt
 
 YES=yes /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
-apt install -y postgresql-client-16/bookworm-pgdg
+apt install -y postgresql-client-16/trixie-pgdg
 
 # cleanup system
 apt-get clean
