@@ -1,4 +1,4 @@
-FROM php:8.5-apache
+FROM php:8.5.12-apache
 
 # set fixed UID and GID - see github.com/hexops/dockerfile
 ARG UID=999
