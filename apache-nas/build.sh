@@ -19,8 +19,14 @@ chown -R www-data /run/apache2 /run/lock/apache2 /var/cache/apache2/mod_cache_di
 printf "upload_max_filesize=512M\npost_max_size=512M\n" > /usr/local/etc/php/conf.d/upload-size-customizations.ini
 a2enmod rewrite headers
 
+# hide apache version and OS (Server header and error pages signature)
+sed -i -E 's/^ServerTokens .*/ServerTokens Prod/; s/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf
+
 # disable builtin php functions that might be exploited / reveal sensitive infos
 printf "disable_functions=phpinfo\n" > /usr/local/etc/php/conf.d/disabled-functions.ini
+
+# hide php version (removes the X-Powered-By header)
+printf "expose_php=Off\n" > /usr/local/etc/php/conf.d/expose-php.ini
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
