@@ -25,6 +25,9 @@ sed -i -E 's/^ServerTokens .*/ServerTokens Prod/; s/^ServerSignature .*/ServerSi
 # disable builtin php functions that might be exploited / reveal sensitive infos
 printf "disable_functions=phpinfo\n" > /usr/local/etc/php/conf.d/disabled-functions.ini
 
+# disable session upload progress (mitigates CVE-2026-115560 session serializer mismatch)
+printf "session.upload_progress.enabled=Off\n" > /usr/local/etc/php/conf.d/session-upload-progress.ini
+
 # hide php version (removes the X-Powered-By header)
 printf "expose_php=Off\n" > /usr/local/etc/php/conf.d/expose-php.ini
 
